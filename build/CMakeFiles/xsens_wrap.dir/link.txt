@@ -1,2 +1,0 @@
-/usr/bin/ar qc libxsens_wrap.a CMakeFiles/xsens_wrap.dir/xsens_interface.cpp.o
-/usr/bin/ranlib libxsens_wrap.a
