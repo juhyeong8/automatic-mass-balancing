@@ -4,8 +4,6 @@
 #include <array>
 #include <unistd.h>
 #include <algorithm> // std::min/max
-#include <chrono>
-#include <string>
 
 #include "xsens_interface.hpp"
 #include "realTimeHandler.h"
@@ -58,26 +56,8 @@ struct FirstOrderLPFExp {
     }
 };
 
-void printXsensStats(const CallbackHandler& callback)
+int main()
 {
-    const auto s = callback.receiveStats();
-    std::cerr << "[XSENS] raw_messages=" << s.rawMessages
-              << " raw_orientation=" << s.rawOrientation
-              << " raw_parsed_orientation=" << s.rawParsedOrientation
-              << " malformed=" << s.malformedMessages
-              << " packets=" << s.packets
-              << " orientation=" << s.orientation << " gyro=" << s.gyro
-              << " complete=" << s.complete << " dropped=" << s.dropped
-              << " errors=" << s.errors << " last_error=" << s.lastError << "\n";
-}
-
-int main(int argc, char** argv)
-{
-    const bool xsensOnly = argc == 2 && std::string(argv[1]) == "--xsens-only";
-    if (argc > 1 && !xsensOnly) {
-        std::cerr << "Usage: " << argv[0] << " [--xsens-only]\n";
-        return 1;
-    }
     // ---------------- Xsens ----------------
     XsControl* control = nullptr;
     XsDevice* device = nullptr;
@@ -85,31 +65,7 @@ int main(int argc, char** argv)
 
     if (!setupXsens(control, device, callback)) {
         std::cerr << "[ERROR] Xsens init failed\n";
-        shutdownXsens(control, device);
         return -1;
-    }
-
-    if (xsensOnly) {
-        std::cerr << "[XSENS] sensor-only diagnostic for 10 seconds\n";
-        using Clock = std::chrono::steady_clock;
-        const auto start = Clock::now();
-        auto report = start;
-        unsigned int states = 0;
-        float rpy[3] = {}, pqr[3] = {};
-        while (Clock::now() - start < std::chrono::seconds(10)) {
-            if (callback.getStates(rpy, pqr)) ++states;
-            if (Clock::now() >= report) {
-                printXsensStats(callback);
-                std::cerr << "[XSENS] states_read=" << states
-                          << " last_rpy_deg=" << rpy[0] << "," << rpy[1] << "," << rpy[2]
-                          << " last_gyro_rad_s=" << pqr[0] << "," << pqr[1] << "," << pqr[2] << "\n";
-                report += std::chrono::seconds(1);
-            }
-            usleep(5000);
-        }
-        printXsensStats(callback);
-        shutdownXsens(control, device);
-        return states ? 0 : 2;
     }
 
     // ---------------- I2C ----------------
@@ -174,26 +130,11 @@ int main(int argc, char** argv)
     PeriodicTimer timer;
     startTimer(&timer, sampleTime_s);
 
-    bool firstStateRead = true;
-    unsigned int noStateCount = 0;
-
     while (true) {
-
-        if (firstStateRead) {
-            std::cerr << "[DEBUG] before first getStates\n";
-        }
 
         const bool hasStates = callback.getStates(euler_deg, bodyRate);
 
-        if (firstStateRead) {
-            std::cerr << "[DEBUG] after first getStates: "
-                      << (hasStates ? "data received" : "no data") << "\n";
-            firstStateRead = false;
-        }
-
         if (hasStates) {
-            noStateCount = 0;
-
             euler_rad[0] = euler_deg[0] * D2R;
             euler_rad[1] = euler_deg[1] * D2R;
 
@@ -241,10 +182,6 @@ int main(int argc, char** argv)
                       << " | X " << std::setw(7) << pos_m[0] * 100.0f
                       << " | Y " << std::setw(7) << pos_m[1] * 100.0f
                       << "\n";
-        } else if (++noStateCount >= 50) {
-            std::cerr << "[WARN] no complete Xsens state received for 1 second\n";
-            printXsensStats(callback);
-            noStateCount = 0;
         }
 
         waitNextPeriod(&timer);

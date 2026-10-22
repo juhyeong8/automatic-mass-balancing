@@ -21,16 +21,6 @@ target_link_libraries(main PRIVATE xsens_wrap)
 
 add_executable(mainCalibrateAMBS mainCalibrateAMBS.cpp ${AMBS_HW_SRCS})
 
-# Sensor-only diagnostics, independent of the AMBS wrapper and motor drivers.
-add_executable(xsens_diagnostic xsens_diagnostic.cpp)
-target_include_directories(xsens_diagnostic PRIVATE xspublic)
-target_link_directories(xsens_diagnostic PRIVATE
-  ${CMAKE_SOURCE_DIR}/xspublic/xscontroller
-  ${CMAKE_SOURCE_DIR}/xspublic/xscommon
-  ${CMAKE_SOURCE_DIR}/xspublic/xstypes
-)
-target_link_libraries(xsens_diagnostic PRIVATE xscontroller xscommon xstypes pthread rt dl)
-
 # ★ vertical 쪽도 i2c 쓰면 동일하게 (안 쓰면 ${AMBS_HW_SRCS} 빼세요)
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/main_vertical_balancing.cpp")
   add_executable(main_vertical_balancing main_vertical_balancing.cpp realTimeHandler.cpp ${AMBS_HW_SRCS})
