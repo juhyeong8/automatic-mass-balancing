@@ -61,7 +61,11 @@ struct FirstOrderLPFExp {
 void printXsensStats(const CallbackHandler& callback)
 {
     const auto s = callback.receiveStats();
-    std::cerr << "[XSENS] packets=" << s.packets
+    std::cerr << "[XSENS] raw_messages=" << s.rawMessages
+              << " raw_orientation=" << s.rawOrientation
+              << " raw_parsed_orientation=" << s.rawParsedOrientation
+              << " malformed=" << s.malformedMessages
+              << " packets=" << s.packets
               << " orientation=" << s.orientation << " gyro=" << s.gyro
               << " complete=" << s.complete << " dropped=" << s.dropped
               << " errors=" << s.errors << " last_error=" << s.lastError << "\n";

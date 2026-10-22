@@ -57,6 +57,37 @@ void CallbackHandler::onError(XsDevice*, XsResultValue error) {
     m_stats.lastError = static_cast<int>(error);
 }
 
+void CallbackHandler::onMessageReceivedFromDevice(XsDevice*, const XsMessage* message) {
+    if (!message || message->getMessageId() != XMID_MtData2) return;
+    xsens::Lock locky(&m_mutex);
+    ++m_stats.rawMessages;
+    const bool trace = m_stats.rawMessages <= 3;
+    const XsSize size = message->getDataSize();
+    bool orientation = false;
+    bool malformed = false;
+    if (trace) std::cerr << "[XSENS RAW] MTData2 bytes=" << size;
+    for (XsSize offset = 0; offset < size;) {
+        if (size - offset < 3) { malformed = true; break; }
+        const unsigned int id = message->getDataShort(offset);
+        const XsSize length = message->getDataByte(offset + 2);
+        if (length > size - offset - 3) { malformed = true; break; }
+        const unsigned int type = id & XDI_FullTypeMask;
+        orientation |= length > 0 && (type == XDI_EulerAngles ||
+                       type == XDI_Quaternion || type == XDI_RotationMatrix);
+        if (trace) std::cerr << " id=0x" << std::hex << id << std::dec << " len=" << length;
+        offset += 3 + length;
+    }
+    m_stats.rawOrientation += orientation;
+    m_stats.malformedMessages += malformed;
+    if (!malformed) {
+        XsDataPacket decoded(message);
+        const bool parsed = decoded.containsOrientation();
+        m_stats.rawParsedOrientation += parsed;
+        if (trace) std::cerr << " decoded_orientation=" << parsed;
+    }
+    if (trace) std::cerr << " malformed=" << malformed << "\n";
+}
+
 bool CallbackHandler::getEulerAngles(float* rpy) {
     if (!packetAvailable()) return false;
     XsDataPacket packet = getNextPacket();

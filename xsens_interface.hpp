@@ -11,6 +11,10 @@
 #include <cstdint>
 
 struct XsensReceiveStats {
+    uint64_t rawMessages = 0;
+    uint64_t rawOrientation = 0;
+    uint64_t rawParsedOrientation = 0;
+    uint64_t malformedMessages = 0;
     uint64_t packets = 0;
     uint64_t orientation = 0;
     uint64_t gyro = 0;
@@ -35,6 +39,7 @@ public:
 protected:
     void onLiveDataAvailable(XsDevice*, const XsDataPacket* packet) override;
     void onError(XsDevice*, XsResultValue error) override;
+    void onMessageReceivedFromDevice(XsDevice*, const XsMessage* message) override;
 
 private:
     mutable xsens::Mutex m_mutex;
