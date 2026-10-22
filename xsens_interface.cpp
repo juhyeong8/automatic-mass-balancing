@@ -2,6 +2,7 @@
 #include "xsens_interface.hpp"
 #include <iostream>
 #include <cassert>
+#include <iomanip>
 
 Journaller* gJournal = 0;
 
@@ -131,9 +132,30 @@ bool setupXsens(XsControl*& control, XsDevice*& device, CallbackHandler& callbac
     configArray.push_back(XsOutputConfiguration(XDI_EulerAngles, 100));
     configArray.push_back(XsOutputConfiguration(XDI_RateOfTurn, 100));
 
-    if (!device->setOutputConfiguration(configArray)) return false;
+    // The SDK replaces configArray with the configuration acknowledged by the device.
+    auto printConfig = [](const char* label, const XsOutputConfigurationArray& config) {
+        std::cerr << "[XSENS] " << label << " items=" << config.size() << "\n";
+        for (const auto& item : config) {
+            std::cerr << "[XSENS]   data_id=0x" << std::hex
+                      << static_cast<unsigned int>(item.m_dataIdentifier) << std::dec
+                      << " frequency=" << item.m_frequency << " Hz\n";
+        }
+    };
+    printConfig("requested output", configArray);
+    if (!device->setOutputConfiguration(configArray)) {
+        std::cerr << "[XSENS] setOutputConfiguration failed: "
+                  << device->lastResultText().toStdString() << "\n";
+        return false;
+    }
+    printConfig("acknowledged output", configArray);
+    // Query while in config mode; in measurement mode the SDK may return cached data.
+    printConfig("read-back output", device->outputConfiguration());
 
-    if (!device->gotoMeasurement()) return false;
+    if (!device->gotoMeasurement()) {
+        std::cerr << "[XSENS] gotoMeasurement failed: "
+                  << device->lastResultText().toStdString() << "\n";
+        return false;
+    }
 
     return true;
 }
