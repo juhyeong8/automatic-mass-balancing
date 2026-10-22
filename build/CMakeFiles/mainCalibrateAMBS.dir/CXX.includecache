@@ -1,0 +1,44 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/ascl2/projectAMBS2/i2c_bus.hpp
+cstdint
+-
+string
+-
+
+/home/ascl2/projectAMBS2/mainCalibrateAMBS.cpp
+iostream
+-
+iomanip
+-
+cstdint
+-
+cmath
+-
+unistd.h
+-
+i2c_bus.hpp
+/home/ascl2/projectAMBS2/i2c_bus.hpp
+tca9548a.hpp
+/home/ascl2/projectAMBS2/tca9548a.hpp
+pololu_tic_i2c.hpp
+/home/ascl2/projectAMBS2/pololu_tic_i2c.hpp
+
+/home/ascl2/projectAMBS2/pololu_tic_i2c.hpp
+cstdint
+-
+i2c_bus.hpp
+/home/ascl2/projectAMBS2/i2c_bus.hpp
+
+/home/ascl2/projectAMBS2/tca9548a.hpp
+cstdint
+-
+i2c_bus.hpp
+/home/ascl2/projectAMBS2/i2c_bus.hpp
+
