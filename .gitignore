@@ -1,20 +1,10 @@
-# CMake build directories (machine-specific caches and binaries)
+cat > .gitignore <<'EOF'
+# CMake build directories
 /build/
 /build-*/
 /cmake-build-*/
 
-# Compiler outputs, including Xsens SDK build products
-*.o
-*.a
-*.so
-*.so.*
-*.out
-/xspublic/**/*.d
-/xspublic/**/*.dpp
-/xspublic/**/*.d.tmp
-/xspublic/**/*.dpp.tmp
-
-# Generated experiment data; keep other CSV data eligible for version control
+# Generated experiment data
 /xsens_log.csv
 /logs/
 
@@ -25,3 +15,4 @@ Desktop.ini
 *.swp
 *.swo
 *~
+EOF
