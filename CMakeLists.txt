@@ -22,6 +22,7 @@ target_link_libraries(main PRIVATE xsens_wrap)
 add_executable(mainCalibrateAMBS mainCalibrateAMBS.cpp ${AMBS_HW_SRCS})
 
 # ★ vertical 쪽도 i2c 쓰면 동일하게 (안 쓰면 ${AMBS_HW_SRCS} 빼세요)
-add_executable(main_vertical_balancing main_vertical_balancing.cpp realTimeHandler.cpp ${AMBS_HW_SRCS})
-target_link_libraries(main_vertical_balancing PRIVATE xsens_wrap)
-
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/main_vertical_balancing.cpp")
+  add_executable(main_vertical_balancing main_vertical_balancing.cpp realTimeHandler.cpp ${AMBS_HW_SRCS})
+  target_link_libraries(main_vertical_balancing PRIVATE xsens_wrap)
+endif()
