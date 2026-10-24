@@ -13,7 +13,7 @@
 #include "pololu_tic_i2c.hpp"
 
 // ---------------- Parameters ----------------
-constexpr float mass_kg = 0.65f;
+constexpr float mass_kg = 0.7f;
 constexpr float kp = 0.05f;
 // constexpr float ki = 0.01f;
 constexpr float ki = 0.05f;

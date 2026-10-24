@@ -27,5 +27,3 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/main_vertical_balancing.cpp")
   target_link_libraries(main_vertical_balancing PRIVATE xsens_wrap)
 endif()
 
-# Y driver only test through the existing MUX channel 1.
-add_executable(mainCalibrateAMBS_YTest mainCalibrateAMBS_YTest.cpp ${AMBS_HW_SRCS})
