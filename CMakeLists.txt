@@ -27,3 +27,7 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/main_vertical_balancing.cpp")
   target_link_libraries(main_vertical_balancing PRIVATE xsens_wrap)
 endif()
 
+
+# Sensor timing diagnosis; no I2C or motor commands.
+add_executable(mainXsensTiming mainXsensTiming.cpp realTimeHandler.cpp)
+target_link_libraries(mainXsensTiming PRIVATE xsens_wrap)

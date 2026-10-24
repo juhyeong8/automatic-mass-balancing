@@ -1,6 +1,5 @@
 #include <iostream>
 #include <iomanip>
-#include <cmath>
 #include <array>
 #include <unistd.h>
 #include <algorithm> // std::min/max
@@ -36,25 +35,6 @@ float sat(float v, float lo, float hi)
 {
     return std::min(std::max(v, lo), hi);
 }
-
-// ---------------- 1st-order LPF (exp form) ----------------
-struct FirstOrderLPFExp {
-    float fc_Hz;   // cutoff
-    float y;       // state
-    bool inited;
-
-    explicit FirstOrderLPFExp(float fc=1.0f)
-        : fc_Hz(fc), y(0.0f), inited(false) {}
-
-    void setCutoff(float fc) { fc_Hz = std::max(fc, 1e-3f); }
-
-    float step(float x, float dt) {
-        if (!inited) { y = x; inited = true; return y; }
-        const float alpha = 1.0f - std::exp(-2.0f * static_cast<float>(M_PI) * fc_Hz * dt);
-        y = y + alpha * (x - y);
-        return y;
-    }
-};
 
 int main()
 {
@@ -117,14 +97,8 @@ int main()
     float euler_rad[3] = {0};
     float bodyRate[3]  = {0};
 
-    // ---- loop time ----
-    const float sampleTime_s = 0.02f;
-
-    // ---- LPF cutoff (Hz) ----
-    float cutoff_Hz = 3.0f;
-
-    FirstOrderLPFExp lpf_wx(cutoff_Hz);
-    FirstOrderLPFExp lpf_wy(cutoff_Hz);
+    // ---- 20 Hz control loop (sensor reception and gyro LPF run at 100 Hz) ----
+    const float sampleTime_s = 0.05f;
 
     // initSystemConfigs();
     PeriodicTimer timer;
@@ -138,11 +112,9 @@ int main()
             euler_rad[0] = euler_deg[0] * D2R;
             euler_rad[1] = euler_deg[1] * D2R;
 
-            lpf_wx.setCutoff(cutoff_Hz);
-            lpf_wy.setCutoff(cutoff_Hz);
-
-            const float wx_f = lpf_wx.step(bodyRate[0], sampleTime_s);
-            const float wy_f = lpf_wy.step(bodyRate[1], sampleTime_s);
+            // Already filtered in the Xsens receive callback; do not filter twice.
+            const float wx_f = bodyRate[0];
+            const float wy_f = bodyRate[1];
 
             std::array<float,2> torque = {
                 -kp * euler_rad[0] - ki * eulerIntegral[0] - kd * wx_f,

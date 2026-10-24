@@ -8,16 +8,19 @@
 #include <xstypes/xstime.h>
 #include <xscommon/xsens_mutex.h>
 #include <list>
+#include <array>
 
 class CallbackHandler : public XsCallback
 {
 public:
-    CallbackHandler(size_t maxBufferSize = 5);
+    // Disable the gyro LPF only when collecting raw diagnostic data.
+    CallbackHandler(size_t maxBufferSize = 5, bool filterGyroscope = true);
     virtual ~CallbackHandler();
     bool packetAvailable() const;
     XsDataPacket getNextPacket();
     bool getEulerAngles(float* rpy);
     bool getBodyRate(float* pqr);
+    // Latest raw Euler (degrees) and filtered gyro (rad/s); discard older packets.
     bool getStates(float* rpy, float* pqr);
 
 protected:
@@ -28,6 +31,9 @@ private:
     size_t m_maxNumberOfPacketsInBuffer;
     size_t m_numberOfPacketsInBuffer;
     std::list<XsDataPacket> m_packetBuffer;
+    bool m_filterGyroscope;
+    bool m_gyroLpfInitialized;
+    std::array<float, 3> m_filteredGyro;
 };
 
 bool setupXsens(XsControl*& control, XsDevice*& device, CallbackHandler& callback);
